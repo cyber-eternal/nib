@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+apps/desktop/src-tauri/target
+apps/desktop/src-tauri/target-*
+apps/desktop/src-tauri/gen
+*.tsbuildinfo
+*.log
+.DS_Store
+*.local
+
+# Local working files (kept on disk, not published)
+.archive/
+.claude/
+.impeccable/

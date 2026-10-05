@@ -1,0 +1,25 @@
+{
+  "name": "nib",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cyber-eternal/nib.git"
+  },
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "test": "vitest run",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit -p packages/core && tsc --noEmit -p packages/platform && tsc --noEmit -p packages/editor && tsc --noEmit -p apps/desktop",
+    "dev": "vite --config apps/desktop/vite.config.ts",
+    "desktop": "bun run --cwd apps/desktop tauri dev",
+    "desktop:build": "bun run --cwd apps/desktop tauri build",
+    "desktop:release": "bun run --cwd apps/desktop release:mac"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  },
+  "license": "MIT"
+}
