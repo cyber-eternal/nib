@@ -1,0 +1,240 @@
+/* Base, the .nib root and where the shell's chrome sits. Components style themselves in their own
+   files; every value here comes from tokens.css or the theme applyTheme() writes on <html>. */
+@import "./tokens.css";
+@import "./fonts.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  color: var(--ink);
+  background: var(--board);
+  font-family: var(--font-ui);
+  font-size: var(--text-control);
+  line-height: var(--leading);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(h1, h2, h3, p) {
+  margin: 0;
+}
+
+/* The window-filling root: the board is full-bleed and the chrome floats above it. */
+.nib {
+  --tray-height: 56px;
+  --chrome-gap: 12px;
+  /* the style bar: 40px controls, 4px padding and its seams */
+  --stylebar-h: calc(var(--hit) + var(--space-2) + var(--seam-w) * 2);
+  --stack-gap: var(--space-2);
+  /* how far the style bar, and a ledge end raised above the tray, push what sits above them */
+  --stylebar-lift: 0px;
+  --ledge-lift: 0px;
+  /* the tray centres in the span the ledge end and the help button leave free */
+  --tray-inset-start: calc(var(--ledge-w, 0px) + var(--chrome-gap));
+  --tray-inset-end: calc(var(--corner-w, 0px) + var(--chrome-gap));
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--board);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+/* The tray measures where it fits and says so in data-tray-layout (trayFit). Wide windows keep it on the
+   true centre line, with room on both sides for the ledge end. */
+.nib[data-tray-layout="centre"] {
+  --tray-inset-start: calc(max(var(--ledge-w, 0px), var(--corner-w, 0px)) + var(--chrome-gap));
+  --tray-inset-end: var(--tray-inset-start);
+}
+
+/* Where the whole tray does not fit beside them, the ledge end and help rise above it, so the tray keeps
+   the full width with its caps and More, instead of collapsing or scrolling behind them. */
+.nib[data-tray-layout="stacked"] {
+  --tray-inset-start: 0px;
+  --tray-inset-end: 0px;
+  --ledge-lift: calc(var(--hit) + var(--space-2) * 2);
+}
+
+.nib input,
+.nib textarea,
+.nib [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.nib-board {
+  position: absolute;
+  inset: 0;
+}
+
+/* The style bar rises above the tray when there is something to style; the bottom stack and the toasts
+   rise with it. Two rules, so an engine without :has() still lifts the stack. */
+.nib-board[data-stylebar],
+.nib:has(.nib-board[data-stylebar]) {
+  --stylebar-lift: calc(var(--space-2) + var(--stylebar-h));
+}
+
+/* Declared on both, since a custom property resolves where it is declared: the board's style bar lift
+   would never reach a sum computed on the root. Side sheets end above the stack and the pill beside it. */
+.nib,
+.nib-board {
+  --stack-bottom: calc(
+    var(--chrome-gap) +
+    var(--tray-height) +
+    var(--stylebar-lift) +
+    var(--ledge-lift) +
+    var(--stack-gap)
+  );
+  --sheet-bottom: calc(var(--stack-bottom) + var(--space-8) + var(--stack-gap));
+}
+
+/* Chrome regions. Each zone is one stacking layer above the canvas; its children place themselves. */
+.shell-zone {
+  position: relative;
+  z-index: var(--z-chrome);
+  transition: opacity var(--dur) var(--ease-out);
+}
+
+.shell-doc {
+  position: fixed;
+  top: var(--chrome-gap);
+  left: var(--chrome-gap);
+  max-width: calc(100vw - var(--top-actions-w, 50vw) - var(--chrome-gap) * 3);
+}
+
+.shell-top-actions {
+  position: fixed;
+  top: var(--chrome-gap);
+  right: var(--chrome-gap);
+}
+
+.shell-ledge,
+.shell-corner {
+  position: fixed;
+  bottom: calc(var(--chrome-gap) + (var(--tray-height) - var(--hit) - var(--space-2)) / 2);
+}
+
+.shell-ledge {
+  left: var(--chrome-gap);
+}
+
+.shell-corner {
+  right: var(--chrome-gap);
+}
+
+.shell-corner .shell-pill {
+  position: fixed;
+  right: var(--chrome-gap);
+  bottom: var(--stack-bottom);
+}
+
+.shell-stack {
+  position: fixed;
+  left: 50%;
+  bottom: var(--stack-bottom);
+  z-index: var(--z-chrome);
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: var(--stack-gap);
+  width: max-content;
+  max-width: calc(100vw - var(--chrome-gap) * 2);
+  transform: translateX(-50%);
+  pointer-events: none;
+  transition: bottom var(--dur) var(--ease-out);
+}
+
+.shell-stack > * {
+  pointer-events: auto;
+}
+
+.shell-mode {
+  position: fixed;
+  top: var(--chrome-gap);
+  left: 50%;
+  z-index: var(--z-chrome);
+  transform: translateX(-50%);
+}
+
+.shell-present {
+  position: fixed;
+  left: 50%;
+  bottom: var(--chrome-gap);
+  z-index: var(--z-chrome);
+  transform: translateX(-50%);
+}
+
+/* Toasts queue above the bottom stack, never on top of it. */
+.nib .sc-toasts {
+  bottom: calc(var(--stack-bottom) + var(--hint-stack-h, 0px) + var(--stack-gap));
+  transition: bottom var(--dur) var(--ease-out);
+}
+
+/* Zen: the chrome steps aside while drawing and returns from an edge, or while it holds focus. */
+.nib-board[data-chrome="zen"] .shell-zone {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nib-board[data-chrome="zen"][data-reveal="top"] .shell-zone[data-zone="top"],
+.nib-board[data-chrome="zen"][data-reveal="bottom"] .shell-zone[data-zone="bottom"],
+.nib-board[data-chrome="zen"] .shell-zone:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nib-board[data-picking] .sc-canvas-layer {
+  cursor: crosshair;
+}
+
+.nib[data-tray-layout="stacked"] .shell-ledge,
+.nib[data-tray-layout="stacked"] .shell-corner {
+  bottom: calc(var(--chrome-gap) + var(--tray-height) + var(--space-2) + var(--stylebar-lift));
+}
+
+/* Narrow windows (< 760px): the doc label gives way to the collapsed top-right actions. */
+@media (max-width: 759px) {
+  .shell-doc {
+    max-width: calc(100vw - var(--chrome-gap) * 3 - var(--hit) * 2 - var(--space-8) * 3);
+  }
+}
+
+.nib a {
+  color: var(--course);
+  text-underline-offset: 0.2em;
+}
+
+.nib :focus:not(:focus-visible) {
+  outline: none;
+}

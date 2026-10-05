@@ -1,0 +1,147 @@
+/* The board and the overlays drawn in canvas pixels. Colours come from theme/tokens.css. */
+
+.sc-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-canvas);
+  overflow: hidden;
+  background: var(--board);
+}
+
+/* The canvases cover the board's own outline, so its ring is drawn on a layer above them. */
+.sc-canvas.canvas-wrap:focus-visible {
+  outline: none;
+}
+
+.sc-canvas.canvas-wrap:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 var(--focus-w) var(--focus);
+}
+
+.sc-canvas-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* z-order inside the board: static pixels 0, embedded pages 1, interactive layer 2, a live embed 3,
+   overlays in canvas pixels (text, frame name, embed address) 4 */
+.sc-canvas-layer[data-layer="interactive"] {
+  z-index: 2;
+}
+
+.sc-canvas-layer[data-layer="interactive"]:focus-visible {
+  outline: none;
+}
+
+/* The text editor is the canvas text itself: no box, no ring, the course-ink caret from tokens.css. The
+   trailing padding is room for the caret, outside the box the renderer lays the text out in. */
+.sc-text-editor {
+  position: absolute;
+  z-index: 4;
+  box-sizing: content-box;
+  min-width: 1px;
+  margin: 0;
+  padding: 0 var(--space-1) 0 0;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  overflow-wrap: break-word;
+  word-break: normal;
+  tab-size: 4;
+  font-variant-numeric: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sc-text-editor:focus,
+.sc-text-editor:focus-visible {
+  outline: none;
+}
+
+.sc-text-editor::selection {
+  background: var(--course-soft);
+}
+
+/* Inline frame rename: sits on the drawn name, at the name's own size. */
+.sc-frame-name {
+  position: absolute;
+  z-index: 4;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 var(--space-1);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-s);
+  outline: none;
+  color: var(--ink);
+  background: var(--surface);
+  font: 12px var(--font-ui);
+  line-height: 1;
+  box-shadow: var(--shadow-1);
+}
+
+.sc-frame-name:focus,
+.sc-frame-name:focus-visible {
+  outline: var(--focus-w) solid var(--focus);
+  outline-offset: calc(var(--focus-w) * -1);
+}
+
+/* Not a stacking context, so a live embed can rise above the interactive layer. */
+.sc-embeds {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sc-embed {
+  position: absolute;
+  z-index: 1;
+  overflow: hidden;
+  background: var(--surface);
+  pointer-events: none;
+}
+
+.sc-embed[data-active] {
+  z-index: 3;
+  pointer-events: auto;
+}
+
+.sc-embed iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.sc-embed-field {
+  position: absolute;
+  z-index: 4;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: calc(var(--space-8) * 10);
+  max-width: calc(100% - var(--space-4));
+  margin: 0;
+  padding: var(--space-1);
+  color: var(--ink);
+  background: var(--surface);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-1);
+  font-family: var(--font-ui);
+  font-size: var(--text-control);
+  transform: translate(-50%, -50%);
+}

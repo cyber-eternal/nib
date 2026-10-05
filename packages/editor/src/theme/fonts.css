@@ -1,0 +1,6 @@
+/* Bundled OFL canvas faces. Each file declares unicode-range subsets, so only used scripts load. */
+@import "@fontsource/shantell-sans/400.css";
+@import "@fontsource/shantell-sans/700.css";
+@import "@fontsource/nunito/400.css";
+@import "@fontsource/nunito/700.css";
+@import "@fontsource/cascadia-code/400.css";

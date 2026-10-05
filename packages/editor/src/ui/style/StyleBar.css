@@ -1,0 +1,398 @@
+/* Style bar and its popovers. Every value comes from theme/tokens.css. */
+
+/* centred between the same insets as the tray (.tray-dock), so the bar sits over the tray, not the window */
+.sc-stylebar {
+  --bar-start: calc(var(--tray-inset-start, 0px) + var(--chrome-gap, 12px));
+  --bar-end: calc(var(--tray-inset-end, 0px) + var(--chrome-gap, 12px));
+
+  position: fixed;
+  left: var(--bar-start);
+  right: var(--bar-end);
+  bottom: calc(var(--chrome-gap, 12px) + var(--tray-height, 56px) + var(--space-2));
+  margin-inline: auto;
+  z-index: var(--z-stylebar);
+  display: flex;
+  width: max-content;
+  max-width: calc(100vw - var(--bar-start) - var(--bar-end));
+  box-sizing: border-box;
+  color: var(--ink);
+  background: var(--surface);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-1);
+  animation: sc-stylebar-rise var(--dur-fast) var(--ease-out);
+}
+
+/* the scroller carries the padding, so focus rings on the end buttons stay inside what it clips */
+.sc-toolbar.sc-stylebar-row {
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 0;
+  padding: var(--space-1);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--space-1);
+  scrollbar-width: none;
+}
+
+.sc-stylebar-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* the tray's edge fades: a bar scrolled sideways never looks complete */
+.sc-stylebar[data-fade-start] .sc-stylebar-row {
+  mask-image: linear-gradient(to right, transparent, var(--ink) var(--space-8));
+}
+
+.sc-stylebar[data-fade-end] .sc-stylebar-row {
+  mask-image: linear-gradient(to left, transparent, var(--ink) var(--space-8));
+}
+
+.sc-stylebar[data-fade-start][data-fade-end] .sc-stylebar-row {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    var(--ink) var(--space-8),
+    var(--ink) calc(100% - var(--space-8)),
+    transparent
+  );
+}
+
+@keyframes sc-stylebar-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-1));
+  }
+}
+
+.sc-stylebar-cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: none;
+  scroll-snap-align: start;
+}
+
+.sc-stylebar-seam {
+  flex: none;
+  width: var(--seam-w);
+  height: var(--space-6);
+  margin: 0 var(--space-1);
+  background: var(--seam);
+}
+
+.sc-stylebar .sc-icon-button[aria-expanded="true"] {
+  background: var(--press);
+}
+
+.sc-stylebar .sc-icon-button:disabled .sc-stylebar-cap,
+.sc-stylebar .sc-icon-button:disabled .sc-stylebar-fill {
+  opacity: 0.4;
+}
+
+.sc-stylebar-cap,
+.sc-stylebar-fill {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: var(--space-5);
+  height: var(--space-5);
+  background: var(--swatch, var(--surface-2));
+  border: var(--seam-w) solid var(--seam);
+}
+
+.sc-stylebar-cap {
+  border-radius: var(--radius-round);
+}
+
+.sc-stylebar-fill {
+  width: calc(var(--space-4) + var(--space-1) / 2);
+  height: calc(var(--space-4) + var(--space-1) / 2);
+  border-radius: calc(var(--radius-s) - var(--space-1) / 2);
+}
+
+.sc-stylebar-cap[data-transparent],
+.sc-stylebar-fill[data-transparent] {
+  background: repeating-conic-gradient(var(--surface-2) 0% 25%, var(--surface) 0% 50%) 50% / var(--space-2)
+    var(--space-2);
+}
+
+/* mixed selections show a dash, never the first element's value */
+.sc-stylebar-cap[data-mixed]::after,
+.sc-stylebar-fill[data-mixed]::after {
+  content: "";
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  top: 50%;
+  height: calc(var(--seam-w) * 2);
+  translate: 0 -50%;
+  background: var(--ink-dim);
+  border-radius: var(--radius-round);
+}
+
+.sc-style-font {
+  font-size: var(--text-title);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.sc-stylebar-font {
+  font-weight: 500;
+}
+
+.sc-style-size {
+  font-size: var(--text-control);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* popovers */
+
+.sc-popover.sc-style-pop {
+  padding: var(--space-3);
+}
+
+.sc-style-pop-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: calc(var(--space-8) * 6);
+}
+
+.sc-style-stack,
+.sc-style-color {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* controls keep their own width; stretched, a segmented track reads like a missing option */
+.sc-style-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.sc-style-heading {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: var(--text-label);
+  font-weight: 600;
+  line-height: var(--leading);
+}
+
+.sc-style-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.sc-style-swatches,
+.sc-style-icongrid {
+  display: grid;
+  gap: var(--space-1);
+  justify-content: start;
+}
+
+.sc-style-swatches .sc-swatch:active .sc-swatch-chip {
+  transform: scale(0.94);
+}
+
+.sc-style-icongrid {
+  padding: calc(var(--space-1) / 2);
+  background: var(--surface-2);
+  border-radius: var(--radius-s);
+}
+
+.sc-style-option {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--hit-s);
+  height: var(--hit-s);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--radius-s) - var(--space-1) / 2);
+  color: var(--ink-dim);
+  background: transparent;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.sc-style-option svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.sc-style-option:hover {
+  color: var(--ink);
+  background: var(--hover);
+}
+
+.sc-style-option:active {
+  background: var(--press);
+}
+
+.sc-style-option[aria-pressed="true"] {
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 0 0 var(--seam-w) var(--seam);
+}
+
+.sc-style-option:disabled {
+  color: var(--ink-faint);
+  background: transparent;
+  cursor: default;
+}
+
+.sc-style-actions {
+  gap: var(--space-1);
+}
+
+.sc-style-opacity {
+  width: calc(var(--space-8) * 6);
+}
+
+/* hex and number fields */
+
+.sc-style-hex-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sc-style-hex-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* level with the field, not the label above it or an error below it */
+.sc-style-hex-row .sc-icon-button {
+  margin-top: calc(var(--text-label) * var(--leading) + var(--space-1));
+}
+
+.sc-style-hex,
+.sc-style-number {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sc-style-hex-label {
+  color: var(--ink-dim);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+.sc-style-hex-box {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--space-1) / 2);
+  height: var(--hit-s);
+  padding: 0 var(--space-2);
+  box-sizing: border-box;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-s);
+  cursor: text;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.sc-style-hex-box:hover {
+  border-color: var(--ink-faint);
+}
+
+.sc-style-hex-box:focus-within {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 calc(var(--focus-w) - var(--seam-w)) var(--focus);
+}
+
+.sc-style-hex-box[data-invalid] {
+  border-color: var(--danger);
+}
+
+.sc-style-hex-box[data-invalid]:focus-within {
+  box-shadow: 0 0 0 calc(var(--focus-w) - var(--seam-w)) var(--danger);
+}
+
+.sc-style-hex-hash {
+  color: var(--ink-dim);
+  font-size: var(--text-control);
+  font-variant-numeric: tabular-nums;
+}
+
+/* the input fills the box's height, so the band above and below the text types into it too */
+.sc-style-hex-input {
+  align-self: stretch;
+  width: 9ch;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-family: var(--font-ui);
+  font-size: var(--text-control);
+  font-variant-numeric: tabular-nums;
+  text-transform: lowercase;
+}
+
+.sc-style-hex-input:focus,
+.sc-style-hex-input:focus-visible {
+  outline: none;
+}
+
+.sc-style-hex-input::placeholder {
+  color: var(--ink-dim);
+  text-transform: none;
+}
+
+.sc-style-number-input {
+  width: 5ch;
+  text-align: right;
+}
+
+.sc-style-hex-error,
+.sc-style-hint {
+  margin: 0;
+  max-width: calc(var(--space-8) * 7);
+  font-size: var(--text-label);
+  line-height: var(--leading);
+}
+
+/* one line is always kept for the message, so showing it never moves the field */
+.sc-style-hex-error {
+  min-height: calc(var(--text-label) * var(--leading));
+  max-width: none;
+  color: var(--danger);
+}
+
+.sc-style-hint {
+  color: var(--ink-dim);
+}
+
+/* narrow windows: the bar becomes a sheet spanning the width above the tray, scrolling sideways */
+@media (max-width: 759px) {
+  .sc-stylebar {
+    left: var(--space-2);
+    right: var(--space-2);
+    margin-inline: 0;
+    width: auto;
+    max-width: none;
+  }
+
+  .sc-popover.sc-style-pop {
+    max-width: calc(100vw - var(--space-4));
+  }
+}

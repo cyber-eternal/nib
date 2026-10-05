@@ -1,0 +1,726 @@
+/* Primitives for the Marker Tray shell. Every value comes from theme/tokens.css. */
+
+.sc-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sc-tooltip-anchor {
+  display: contents;
+}
+
+.sc-icon-button,
+.sc-button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 0;
+  margin: 0;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-control);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
+    transform var(--dur-lift) var(--ease-out);
+}
+
+.sc-icon-button {
+  width: var(--hit);
+  height: var(--hit);
+  padding: 0;
+  border-radius: var(--radius-m);
+  flex: none;
+}
+
+.sc-icon-button[data-size="s"] {
+  width: var(--hit-s);
+  height: var(--hit-s);
+  border-radius: var(--radius-s);
+}
+
+.sc-icon-button svg {
+  width: var(--icon);
+  height: var(--icon);
+  flex: none;
+}
+
+.sc-icon-button:hover,
+.sc-button:hover {
+  background: var(--hover);
+}
+
+.sc-icon-button:active,
+.sc-button:active {
+  background: var(--press);
+}
+
+.sc-icon-button[aria-pressed="true"] {
+  background: var(--course-fill);
+  color: var(--course-ink);
+}
+
+.sc-icon-button[data-lift][aria-pressed="true"] {
+  transform: translateY(var(--lift));
+}
+
+.sc-icon-button:disabled,
+.sc-button:disabled {
+  color: var(--ink-faint);
+  background: transparent;
+  cursor: default;
+}
+
+.sc-button {
+  height: var(--space-8);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-s);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.sc-button[data-variant="primary"] {
+  background: var(--course-fill);
+  color: var(--course-ink);
+}
+
+.sc-button[data-variant="primary"]:hover {
+  background: var(--course-fill);
+  box-shadow: inset 0 0 0 var(--space-8) var(--hover);
+}
+
+.sc-button[data-variant="primary"]:active {
+  box-shadow: inset 0 0 0 var(--space-8) var(--press);
+}
+
+/* after the primary rules, which share its specificity: a disabled primary reads as disabled */
+.sc-button[data-variant="primary"]:disabled {
+  color: var(--ink-faint);
+  background: var(--surface-2);
+  box-shadow: none;
+  cursor: default;
+}
+
+.sc-button[data-variant="danger"],
+.sc-icon-button[data-variant="danger"] {
+  color: var(--danger);
+}
+
+.sc-button[data-variant="danger"]:hover,
+.sc-icon-button[data-variant="danger"]:hover {
+  background: var(--danger-soft);
+}
+
+.sc-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sc-toolbar[data-orientation="vertical"] {
+  flex-direction: column;
+}
+
+.sc-popover {
+  position: fixed;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: var(--space-2);
+  color: var(--ink);
+  background: var(--surface);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-1);
+  overscroll-behavior: contain;
+}
+
+.sc-popover:not([data-placed]) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sc-popover[data-placed] {
+  animation: sc-rise var(--dur-fast) var(--ease-out);
+}
+
+.sc-popover[data-side="bottom"][data-placed] {
+  animation-name: sc-drop;
+}
+
+.sc-popover:focus-visible {
+  outline: none;
+}
+
+@keyframes sc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-1));
+  }
+}
+
+@keyframes sc-drop {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--space-1) * -1));
+  }
+}
+
+.sc-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: var(--scrim);
+  animation: sc-fade var(--dur) var(--ease-out);
+}
+
+.sc-dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: calc(var(--space-8) * 15);
+  max-height: calc(100vh - var(--space-8) * 2);
+  color: var(--ink);
+  background: var(--surface);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+
+.sc-dialog[data-size="s"] {
+  max-width: calc(var(--space-8) * 11);
+}
+
+.sc-dialog[data-size="l"] {
+  max-width: calc(var(--space-8) * 24);
+}
+
+.sc-dialog:focus-visible {
+  outline: none;
+}
+
+.sc-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-2) var(--space-5);
+}
+
+.sc-dialog-title {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 600;
+  line-height: var(--leading);
+}
+
+.sc-dialog-desc {
+  margin: 0;
+  padding: 0 var(--space-5) var(--space-2);
+  color: var(--ink-dim);
+}
+
+.sc-dialog-tools {
+  flex: none;
+  padding: var(--space-1) var(--space-5) var(--space-2);
+}
+
+.sc-dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-2) var(--space-5) var(--space-5);
+}
+
+/* the dialog clips anything outside it, so a focused scroll region draws its ring inside */
+.sc-dialog-body[tabindex]:focus-visible {
+  outline-offset: calc(var(--focus-w) * -1);
+  border-radius: var(--radius-s);
+}
+
+.sc-dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-top: var(--seam-w) solid var(--seam);
+}
+
+@keyframes sc-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.sc-menu-popover {
+  padding: var(--space-1);
+}
+
+.sc-menu {
+  display: flex;
+  flex-direction: column;
+  min-width: calc(var(--space-8) * 7);
+  outline: none;
+}
+
+.sc-menu-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.sc-menu-section[data-isolated] {
+  margin-top: var(--space-4);
+}
+
+.sc-menu-separator {
+  flex: none;
+  height: var(--seam-w);
+  border: 0;
+  margin: var(--space-1) var(--space-2);
+  background: var(--seam);
+}
+
+.sc-menu-section[data-isolated] > .sc-menu-separator {
+  margin-top: 0;
+}
+
+.sc-menu-heading {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  color: var(--ink-dim);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+.sc-menu-item {
+  appearance: none;
+  display: grid;
+  grid-template-columns: var(--space-5) 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--space-8);
+  margin: 0;
+  padding: 0 var(--space-3) 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-s);
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-control);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sc-menu-item:hover,
+.sc-menu-item:focus-visible {
+  background: var(--hover);
+}
+
+.sc-menu-item:focus-visible {
+  outline-offset: calc(var(--focus-w) * -1);
+}
+
+.sc-menu-item:active {
+  background: var(--press);
+}
+
+.sc-menu-item[aria-disabled="true"] {
+  color: var(--ink-faint);
+  background: transparent;
+  cursor: default;
+}
+
+.sc-menu-item[data-danger] {
+  color: var(--danger);
+}
+
+.sc-menu-item[data-danger]:hover,
+.sc-menu-item[data-danger]:focus-visible {
+  background: var(--danger-soft);
+}
+
+.sc-menu-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-5);
+  height: var(--space-5);
+}
+
+.sc-menu-icon svg {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.sc-menu-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc-tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-tooltip);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  color: var(--surface);
+  background: var(--ink);
+  border-radius: var(--radius-s);
+  box-shadow: var(--shadow-1);
+  font-size: var(--text-label);
+  line-height: var(--leading);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.sc-tooltip:not([data-placed]) {
+  opacity: 0;
+}
+
+.sc-tooltip .sc-kbd {
+  color: inherit;
+  border-color: currentColor;
+  background: transparent;
+}
+
+.sc-kbd {
+  display: inline-block;
+  min-width: var(--space-4);
+  padding: 0 var(--space-1);
+  color: var(--ink-dim);
+  background: var(--surface-2);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-s);
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.sc-kbd-plain {
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.sc-segmented {
+  display: inline-flex;
+  gap: var(--space-1);
+  padding: calc(var(--space-1) / 2);
+  background: var(--surface-2);
+  border-radius: var(--radius-s);
+}
+
+.sc-segment {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--hit-s);
+  height: var(--hit-s);
+  margin: 0;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: calc(var(--radius-s) - var(--space-1) / 2);
+  color: var(--ink-dim);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-control);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.sc-segment svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.sc-segment:hover {
+  color: var(--ink);
+  background: var(--hover);
+}
+
+.sc-segment[aria-checked="true"] {
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 0 0 var(--seam-w) var(--seam);
+}
+
+.sc-segment:disabled {
+  color: var(--ink-faint);
+  background: transparent;
+  cursor: default;
+}
+
+.sc-slider {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.sc-slider-label {
+  color: var(--ink-dim);
+  font-size: var(--text-label);
+}
+
+.sc-slider-readout {
+  min-width: 4ch;
+  color: var(--ink);
+  font-size: var(--text-label);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.sc-slider-input {
+  grid-column: 1 / -1;
+  appearance: none;
+  width: 100%;
+  height: var(--space-5);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.sc-slider-input::-webkit-slider-runnable-track {
+  height: var(--space-1);
+  background: var(--seam);
+  border-radius: var(--radius-round);
+}
+
+.sc-slider-input::-moz-range-track {
+  height: var(--space-1);
+  background: var(--seam);
+  border-radius: var(--radius-round);
+}
+
+.sc-slider-input::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--space-4);
+  height: var(--space-4);
+  margin-top: calc((var(--space-1) - var(--space-4)) / 2);
+  background: var(--ink);
+  border: calc(var(--space-1) / 2) solid var(--surface);
+  border-radius: var(--radius-round);
+  box-shadow: 0 0 0 var(--seam-w) var(--ink-faint);
+}
+
+.sc-slider-input::-moz-range-thumb {
+  width: var(--space-4);
+  height: var(--space-4);
+  background: var(--ink);
+  border: calc(var(--space-1) / 2) solid var(--surface);
+  border-radius: var(--radius-round);
+}
+
+.sc-slider-input:focus-visible {
+  outline: none;
+}
+
+.sc-slider-input:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 var(--focus-w) var(--focus);
+}
+
+.sc-slider-input:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 var(--focus-w) var(--focus);
+}
+
+.sc-slider-input:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.sc-switch {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--hit-s);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-control);
+  cursor: pointer;
+}
+
+.sc-switch-track {
+  position: relative;
+  flex: none;
+  width: var(--space-8);
+  height: var(--space-5);
+  background: transparent;
+  border: var(--seam-w) solid var(--ink-faint);
+  border-radius: var(--radius-round);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.sc-switch-thumb {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--space-1) / 2);
+  width: var(--space-4);
+  height: var(--space-4);
+  background: var(--ink-faint);
+  border-radius: var(--radius-round);
+  transform: translateY(-50%);
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+
+.sc-switch[aria-checked="true"] .sc-switch-track {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.sc-switch[aria-checked="true"] .sc-switch-thumb {
+  background: var(--surface);
+  transform: translate(calc(var(--space-8) - var(--space-4) - var(--space-1) - var(--seam-w) * 2), -50%);
+}
+
+.sc-switch:disabled {
+  color: var(--ink-faint);
+  cursor: default;
+}
+
+.sc-swatch {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--hit-s);
+  height: var(--hit-s);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  cursor: pointer;
+}
+
+.sc-swatch[data-size="m"] {
+  width: var(--hit);
+  height: var(--hit);
+}
+
+.sc-swatch-chip {
+  display: grid;
+  place-items: center;
+  width: var(--space-5);
+  height: var(--space-5);
+  background: var(--swatch);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-round);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.sc-swatch-drawn {
+  width: var(--space-2);
+  height: var(--space-2);
+  background: var(--swatch-drawn);
+  border-radius: var(--radius-round);
+  box-shadow: 0 0 0 var(--seam-w) var(--surface);
+}
+
+.sc-swatch[data-size="m"] .sc-swatch-chip {
+  width: var(--space-6);
+  height: var(--space-6);
+}
+
+.sc-swatch[data-transparent] .sc-swatch-chip {
+  background: repeating-conic-gradient(var(--surface-2) 0% 25%, var(--surface) 0% 50%) 50% / var(--space-2)
+    var(--space-2);
+}
+
+.sc-swatch:hover .sc-swatch-chip {
+  transform: scale(1.08);
+}
+
+.sc-swatch[data-selected] .sc-swatch-chip {
+  box-shadow: 0 0 0 var(--focus-offset) var(--surface), 0 0 0 calc(var(--focus-offset) + var(--focus-w))
+    var(--course);
+}
+
+.sc-swatch:focus-visible {
+  outline-offset: 0;
+}
+
+.sc-toasts {
+  position: fixed;
+  left: 50%;
+  bottom: var(--tray-clearance);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* an open popover, menu or dialog owns the clicks under it; the stack waits beneath it */
+.sc-toasts[data-layered] {
+  z-index: calc(var(--z-layer) - 1);
+}
+
+/* a message alone never takes a click: only a toast with an action (Undo) is a target */
+.sc-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: min(calc(var(--space-8) * 15), calc(100vw - var(--space-8)));
+  padding: var(--space-2) var(--space-4);
+  color: var(--surface);
+  background: var(--ink);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-1);
+  font-size: var(--text-control);
+  pointer-events: none;
+  animation: sc-rise var(--dur) var(--ease-out);
+}
+
+.sc-toast[data-action] {
+  pointer-events: auto;
+}
+
+.sc-toast[data-kind="error"] {
+  background: var(--danger);
+}
+
+.sc-toast-action {
+  appearance: none;
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border: var(--seam-w) solid currentColor;
+  border-radius: var(--radius-s);
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sc-toast-action:focus-visible {
+  outline-color: var(--surface);
+}

@@ -1,0 +1,433 @@
+/* Marker Tray. Every value comes from theme/tokens.css; --tray-height and --chrome-gap are set by the shell. */
+
+.tray-dock {
+  --tray-h: var(--tray-height, calc(var(--hit) + var(--space-4)));
+  --tray-gap: var(--chrome-gap, var(--space-3));
+  --tray-start: var(--tray-inset-start, 0px);
+  --tray-end: var(--tray-inset-end, 0px);
+
+  position: fixed;
+  bottom: var(--tray-gap);
+  /* centred by auto margins between the insets, not a -50% transform, so seams land on whole pixels */
+  left: calc(var(--tray-start) + var(--tray-gap));
+  right: calc(var(--tray-end) + var(--tray-gap));
+  margin-inline: auto;
+  z-index: var(--z-chrome);
+  display: flex;
+  box-sizing: border-box;
+  width: max-content;
+  height: var(--tray-h);
+  max-width: calc(100vw - var(--tray-start) - var(--tray-end) - var(--tray-gap) * 2);
+  color: var(--ink);
+  background: var(--tray);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-l);
+  box-shadow: inset 0 var(--seam-w) 0 var(--tray-seam-hi), inset 0 calc(var(--seam-w) * -1) 0
+    var(--tray-seam-lo), var(--shadow-1);
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tray-row {
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0 var(--space-2);
+  gap: var(--space-1);
+}
+
+/* the markers; when the tray is too narrow they scroll, while More and the colour stay put */
+.tray-tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  align-self: stretch;
+  gap: var(--space-1);
+}
+
+.tray-dock[data-scroll] .tray-tools {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--space-1);
+  scrollbar-width: none;
+}
+
+.tray-dock[data-scroll] .tray-tools::-webkit-scrollbar {
+  display: none;
+}
+
+.tray-dock[data-fade-start] .tray-tools {
+  mask-image: linear-gradient(to right, transparent, var(--ink) var(--space-8));
+}
+
+.tray-dock[data-fade-end] .tray-tools {
+  mask-image: linear-gradient(to left, transparent, var(--ink) var(--space-8));
+}
+
+.tray-dock[data-fade-start][data-fade-end] .tray-tools {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    var(--ink) var(--space-8),
+    var(--ink) calc(100% - var(--space-8)),
+    transparent
+  );
+}
+
+.tray-group {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.tray-caps {
+  gap: 0;
+}
+
+.tray-seam {
+  flex: none;
+  align-self: stretch;
+  width: var(--seam-w);
+  margin: var(--space-3) 0;
+  background: var(--seam);
+}
+
+.tray-slot {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  scroll-snap-align: start;
+}
+
+/* the empty slot the lifted marker came out of */
+.tray-slot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--space-1) * -1 - var(--seam-w) * 2);
+  width: var(--space-4);
+  height: calc(var(--space-1) / 2);
+  margin-left: calc(var(--space-4) / -2);
+  border-radius: var(--radius-round);
+  background: var(--course);
+  opacity: 0;
+  transform: scaleX(0.5);
+  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-lift) var(--ease-out);
+  pointer-events: none;
+}
+
+.tray-slot[data-lifted]::after {
+  opacity: 1;
+  transform: none;
+}
+
+.tray-marker {
+  appearance: none;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  box-sizing: border-box;
+  width: var(--hit);
+  height: var(--hit);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-m);
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  transition: transform var(--dur-lift) var(--ease-out), background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.tray-marker svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+
+.tray-marker:hover {
+  background: var(--hover);
+}
+
+.tray-marker:active {
+  background: var(--press);
+}
+
+.tray-marker:disabled {
+  color: var(--ink-faint);
+  background: transparent;
+  cursor: default;
+}
+
+.tray-marker[aria-pressed="true"],
+.tray-marker[data-lifted] {
+  color: var(--course-ink);
+  background: var(--course-fill);
+  box-shadow: var(--shadow-1);
+  transform: translateY(var(--lift));
+}
+
+.tray-marker[aria-pressed="true"]:hover,
+.tray-marker[data-lifted]:hover {
+  background: var(--course-fill);
+  box-shadow: var(--shadow-1), inset 0 0 0 var(--hit) var(--hover);
+}
+
+.tray-marker[aria-pressed="true"]:active,
+.tray-marker[data-lifted]:active {
+  box-shadow: var(--shadow-1), inset 0 0 0 var(--hit) var(--press);
+}
+
+/* a ring drawn inside the course fill: visible on it, and never clipped when the row scrolls */
+.tray-marker[aria-pressed="true"]:focus-visible,
+.tray-marker[data-lifted]:focus-visible {
+  outline-color: var(--course-ink);
+  outline-offset: calc(var(--focus-w) * -1 - var(--seam-w) * 2);
+}
+
+.tray-marker[aria-expanded="true"]:not([data-lifted]):not([aria-pressed="true"]) {
+  background: var(--press);
+}
+
+/* tells the held pen it has options on a second click */
+.tray-marker-flag {
+  position: absolute;
+  top: calc(var(--space-1) / 2);
+  right: calc(var(--space-1) / 2);
+  display: inline-grid;
+  place-items: center;
+  width: var(--space-3);
+  height: var(--space-3);
+  pointer-events: none;
+}
+
+.tray-marker .tray-marker-flag svg {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+/* "Keep tool active" on the held marker, opposite the options caret */
+.tray-marker-kept {
+  position: absolute;
+  top: calc(var(--space-1) / 2);
+  left: calc(var(--space-1) / 2);
+  display: inline-grid;
+  place-items: center;
+  width: var(--space-3);
+  height: var(--space-3);
+  pointer-events: none;
+}
+
+.tray-marker .tray-marker-kept svg {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+.tray-cap {
+  scroll-snap-align: start;
+}
+
+.tray-cap-custom {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--hit);
+  height: var(--hit);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-round);
+  color: var(--ink-dim);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+
+.tray-cap-chip {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--space-6);
+  height: var(--space-6);
+  border: var(--seam-w) dashed var(--ink-faint);
+  border-radius: var(--radius-round);
+  background: transparent;
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.tray-cap-chip svg {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.tray-cap-chip[data-filled] {
+  border-style: solid;
+  border-color: var(--seam);
+  background: var(--swatch);
+}
+
+.tray-cap-custom:hover {
+  color: var(--ink);
+}
+
+.tray-cap-custom:hover .tray-cap-chip {
+  transform: scale(1.08);
+}
+
+.tray-cap-custom:active .tray-cap-chip {
+  transform: scale(0.96);
+}
+
+.tray-cap-custom:focus-visible {
+  outline-offset: 0;
+}
+
+.tray-cap-custom[data-selected] .tray-cap-chip {
+  box-shadow: 0 0 0 var(--focus-offset) var(--tray), 0 0 0 calc(var(--focus-offset) + var(--focus-w))
+    var(--course);
+}
+
+.tray-cap-custom[aria-expanded="true"] .tray-cap-chip {
+  border-color: var(--ink-dim);
+}
+
+.tray-cap-custom:disabled {
+  color: var(--ink-faint);
+  cursor: default;
+}
+
+/* tray caps sit on the tray, so their selection gap takes the tray colour, not the popover surface */
+.tray-caps .sc-swatch[data-selected] .sc-swatch-chip {
+  box-shadow: 0 0 0 var(--focus-offset) var(--tray), 0 0 0 calc(var(--focus-offset) + var(--focus-w))
+    var(--course);
+}
+
+.tray-caps .sc-swatch:active .sc-swatch-chip {
+  transform: scale(0.96);
+}
+
+/* More drawer */
+
+.tray-drawer {
+  display: grid;
+  grid-template-columns: repeat(4, calc(var(--space-8) * 2 + var(--space-2)));
+  gap: var(--space-1);
+}
+
+.tray-drawer-item {
+  appearance: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  box-sizing: border-box;
+  height: calc(var(--space-8) * 2);
+  margin: 0;
+  padding: var(--space-2) var(--space-1);
+  border: 0;
+  border-radius: var(--radius-m);
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-label);
+  line-height: var(--leading);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.tray-drawer-item svg {
+  width: var(--icon);
+  height: var(--icon);
+  flex: none;
+}
+
+.tray-drawer-item:hover {
+  background: var(--hover);
+}
+
+.tray-drawer-item:active {
+  background: var(--press);
+}
+
+.tray-drawer-item:focus-visible {
+  outline-offset: calc(var(--focus-w) * -1);
+}
+
+.tray-drawer-item:disabled {
+  color: var(--ink-faint);
+  background: transparent;
+  cursor: default;
+}
+
+.tray-drawer-item[data-kind="tool"][aria-pressed="true"] {
+  color: var(--course-ink);
+  background: var(--course-fill);
+}
+
+.tray-drawer-item[data-kind="tool"][aria-pressed="true"]:focus-visible {
+  outline-color: var(--course-ink);
+  outline-offset: calc(var(--focus-w) * -1 - var(--seam-w) * 2);
+}
+
+.tray-drawer-item[data-kind="lock"][aria-pressed="true"] {
+  background: var(--course-soft);
+}
+
+.tray-drawer-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tray-drawer-kbd {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-2);
+  color: var(--ink-dim);
+}
+
+.tray-drawer-item[aria-pressed="true"] .tray-drawer-kbd {
+  color: inherit;
+}
+
+.tray-drawer-item[data-kind="tool"][aria-pressed="true"] .tray-drawer-kbd {
+  color: var(--course-ink);
+}
+
+/* pen options */
+
+.tray-pen-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: calc(var(--space-8) * 8);
+  padding: var(--space-1);
+}
+
+.tray-pen-options .sc-switch {
+  justify-content: space-between;
+  width: 100%;
+  font-weight: 600;
+}
+
+.tray-pen-hint {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: var(--text-label);
+  line-height: var(--leading);
+}

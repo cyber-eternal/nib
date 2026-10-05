@@ -1,0 +1,158 @@
+/* Design tokens for the Marker Tray shell. Colour values are Whiteboard defaults; applyTheme() (themes.ts)
+   overwrites them on the themed root, which also gets data-nib-theme / data-nib-mode. */
+
+:root {
+  --board: #fbfbfa;
+  --tray: #ecedef;
+  --tray-seam-hi: #ffffff;
+  --tray-seam-lo: #b1b2b3;
+  --surface: #fdfdfd;
+  --surface-2: #f2f2f2;
+  --seam: #cfd0d3;
+  --seam-hi: #ffffff;
+  --ink: #202124;
+  --ink-dim: #696a6c;
+  --ink-faint: #868688;
+  --course: #2d68fa;
+  --course-ink: #ffffff;
+  --course-fill: #2d68fa;
+  --course-soft: #e0e8fd;
+  --danger: #c52929;
+  --danger-soft: #f8e8e8;
+  --signal: #f5572c;
+  --hover: rgba(32, 33, 36, 0.06);
+  --press: rgba(32, 33, 36, 0.12);
+  --scrim: rgba(32, 33, 36, 0.24);
+  --shadow-1: 0 4px 16px -2px rgba(32, 33, 36, 0.16);
+  --focus: #2d68fa;
+  --cap-1: #1e1e1e;
+  --cap-2: #1971c2;
+  --cap-3: #e03131;
+  --cap-4: #2f9e44;
+  --cap-5: #f08c00;
+
+  --seam-w: 1px;
+  --focus-w: 2px;
+  --focus-offset: 2px;
+
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 14px;
+  --radius-round: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+
+  --hit: 40px;
+  --hit-s: 28px;
+  --icon: 20px;
+  --tray-clearance: 88px;
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --text-label: 12px;
+  --text-control: 13px;
+  --text-title: 15px;
+  --leading: 1.35;
+
+  --dur-fast: 150ms;
+  --dur: 200ms;
+  --dur-slow: 250ms;
+  --dur-lift: 160ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --lift: -6px;
+
+  --z-canvas: 0;
+  --z-chrome: 10;
+  --z-stylebar: 20;
+  --z-layer: 100;
+  --z-toast: 900;
+  --z-tooltip: 1000;
+}
+
+/* one device pixel on HiDPI; applyTheme() pins 2px for High Contrast with an inline value */
+@media (min-resolution: 2dppx) {
+  :root {
+    --seam-w: 0.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur: 0ms;
+    --dur-slow: 0ms;
+    --dur-lift: 0ms;
+    --lift: 0px;
+  }
+
+  [data-nib-theme] *,
+  [data-nib-theme] *::before,
+  [data-nib-theme] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+[data-nib-theme] {
+  color: var(--ink);
+  background: var(--board);
+  font-family: var(--font-ui);
+  font-size: var(--text-control);
+  line-height: var(--leading);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-nib-theme] ::selection {
+  background: var(--course-soft);
+  color: var(--ink);
+}
+
+[data-nib-theme] input,
+[data-nib-theme] textarea,
+[data-nib-theme] [contenteditable] {
+  caret-color: var(--course);
+}
+
+[data-nib-theme] :focus-visible {
+  outline: var(--focus-w) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+[data-nib-theme] * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-faint) transparent;
+}
+
+[data-nib-theme] ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+[data-nib-theme] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-nib-theme] ::-webkit-scrollbar-thumb {
+  background: var(--ink-faint);
+  border: 3px solid transparent;
+  border-radius: var(--radius-round);
+  background-clip: padding-box;
+}
+
+[data-nib-theme] ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ink-dim);
+}
+
+[data-nib-theme] ::-webkit-scrollbar-corner {
+  background: transparent;
+}

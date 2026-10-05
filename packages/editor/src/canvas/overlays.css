@@ -1,0 +1,215 @@
+/* Floating chrome anchored to the board: the context menu and the link popup. Tokens from tokens.css. */
+
+.sc-context-menu {
+  min-width: calc(var(--space-8) * 7);
+}
+
+.sc-context-menu-body {
+  display: contents;
+}
+
+.sc-link-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: calc(100vw - var(--space-4));
+  padding: var(--space-1);
+  color: var(--ink);
+  background: var(--surface);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-1);
+  font-family: var(--font-ui);
+  font-size: var(--text-control);
+}
+
+.sc-link-popup:not([data-placed]) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sc-link-popup[data-placed] {
+  animation: sc-link-rise var(--dur-fast) var(--ease-out);
+}
+
+.sc-link-popup[data-side="top"][data-placed] {
+  animation-name: sc-link-drop;
+}
+
+.sc-link-popup[data-mode="edit"] {
+  width: calc(var(--space-8) * 11);
+}
+
+.sc-link-popup[data-mode="read"] {
+  z-index: var(--z-chrome);
+  flex-direction: row;
+  align-items: center;
+  border-radius: var(--radius-round);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+}
+
+.sc-link-popup:focus-visible {
+  outline: none;
+}
+
+@keyframes sc-link-rise {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--space-1) * -1));
+  }
+}
+
+@keyframes sc-link-drop {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-1));
+  }
+}
+
+.sc-link-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  margin: 0;
+}
+
+.sc-link-glyph {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--hit-s);
+  height: var(--hit-s);
+  color: var(--ink-dim);
+}
+
+.sc-link-glyph svg {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.sc-link-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--hit-s);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 var(--space-2);
+  color: var(--ink);
+  background: var(--surface-2);
+  border: var(--seam-w) solid var(--seam);
+  border-radius: var(--radius-s);
+  font: inherit;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.sc-link-input::placeholder {
+  color: var(--ink-dim);
+}
+
+.sc-link-input:hover {
+  border-color: var(--ink-faint);
+}
+
+.sc-link-input:focus-visible,
+.sc-link-input:focus {
+  border-color: var(--course);
+  outline: var(--focus-w) solid var(--focus);
+  outline-offset: calc(var(--focus-w) * -1);
+}
+
+.sc-link-input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.sc-link-input:disabled {
+  color: var(--ink-faint);
+  cursor: default;
+}
+
+.sc-link-note {
+  margin: 0;
+  padding: 0 var(--space-2) var(--space-1) calc(var(--hit-s) + var(--space-1));
+  color: var(--ink-dim);
+  font-size: var(--text-label);
+  line-height: var(--leading);
+}
+
+.sc-link-note[data-tone="error"] {
+  color: var(--danger);
+}
+
+.sc-link-hint {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 var(--space-1);
+  color: var(--ink);
+}
+
+.sc-link-label {
+  appearance: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: calc(var(--space-8) * 8);
+  height: var(--hit-s);
+  margin: 0;
+  padding: 0 var(--space-2) 0 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-s);
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: var(--ink-faint);
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), text-decoration-color var(--dur-fast) var(--ease-out);
+}
+
+.sc-link-label:hover {
+  color: var(--course);
+  text-decoration-color: currentColor;
+}
+
+.sc-link-label:active {
+  color: var(--ink);
+}
+
+.sc-link-label:focus-visible {
+  outline: var(--focus-w) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+.sc-link-label:disabled {
+  color: var(--ink-dim);
+  text-decoration: line-through;
+  cursor: default;
+}
+
+.sc-link-chip-glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--ink-dim);
+}
+
+.sc-link-chip-glyph svg {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.sc-link-seam {
+  flex: none;
+  width: var(--seam-w);
+  height: var(--space-5);
+  margin: 0 var(--space-1);
+  background: var(--seam);
+}
