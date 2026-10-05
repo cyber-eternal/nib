@@ -1,0 +1,24 @@
+{
+  "type": "nib",
+  "version": 1,
+  "source": "nib",
+  "elements": [
+    { "id": "demo-rect-000000001", "type": "rectangle", "x": 0, "y": 0, "width": 220, "height": 120,
+      "angle": 0, "strokeColor": "#1971c2", "backgroundColor": "#a5d8ff", "fillStyle": "hachure",
+      "strokeWidth": 2, "strokeStyle": "solid", "roughness": 1, "opacity": 100,
+      "roundness": { "type": 3 }, "seed": 12345, "version": 1, "versionNonce": 111,
+      "isDeleted": false, "groupIds": [], "frameId": null,
+      "boundElements": [{ "id": "demo-text-000000001", "type": "text" }],
+      "link": null, "locked": false, "index": "a0", "updated": 1700000000000 },
+    { "id": "demo-text-000000001", "type": "text", "x": 40, "y": 48, "width": 140, "height": 25,
+      "angle": 0, "strokeColor": "#1e1e1e", "backgroundColor": "transparent", "fillStyle": "solid",
+      "strokeWidth": 2, "strokeStyle": "solid", "roughness": 1, "opacity": 100, "roundness": null,
+      "seed": 22222, "version": 1, "versionNonce": 222, "isDeleted": false, "groupIds": [],
+      "frameId": null, "boundElements": null, "link": null, "locked": false, "index": "a1",
+      "updated": 1700000000000, "text": "Opened from a file", "originalText": "Opened from a file",
+      "fontSize": 20, "fontFamily": "hand", "textAlign": "center", "verticalAlign": "middle",
+      "containerId": "demo-rect-000000001", "lineHeight": 1.25, "autoResize": true }
+  ],
+  "appState": { "viewBackgroundColor": "#ffffff", "gridSize": null },
+  "files": {}
+}
