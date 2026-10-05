@@ -1,0 +1,49 @@
+[package]
+name = "nib"
+version = "0.1.0"
+description = "Nib — an infinite hand-drawn whiteboard"
+edition = "2021"
+repository = "https://github.com/cyber-eternal/nib"
+rust-version = "1.77.2"
+license = "MIT"
+
+[lib]
+name = "nib_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["image-png"] }
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-updater = "~2.12"
+tauri-plugin-window-state = "~2.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# macOS already hands a second launch's files to the running app through RunEvent::Opened
+[target.'cfg(any(target_os = "linux", target_os = "windows"))'.dependencies]
+tauri-plugin-single-instance = "2"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+libc = "0.2"
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSURL"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+  "std",
+  "NSApplication",
+  "NSDocumentController",
+  "NSResponder",
+  "NSWindow",
+] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

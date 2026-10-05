@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Name={{name}}
+GenericName=Whiteboard
+{{#if comment}}
+Comment={{comment}}
+{{/if}}
+Exec={{exec}} %F
+Icon={{icon}}
+Terminal=false
+Categories={{categories}}
+Keywords=whiteboard;drawing;diagram;sketch;excalidraw;
+StartupWMClass={{exec}}
+StartupNotify=true
+{{#if mime_type}}
+MimeType={{mime_type}};
+{{/if}}

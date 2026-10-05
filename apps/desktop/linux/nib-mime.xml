@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The bundler only lists these types in the .desktop file; shared-mime-info needs them defined to match the extensions. -->
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/vnd.nib+json">
+    <comment>Nib drawing</comment>
+    <sub-class-of type="application/json"/>
+    <generic-icon name="x-office-drawing"/>
+    <glob pattern="*.nibd"/>
+  </mime-type>
+  <mime-type type="application/vnd.excalidraw+json">
+    <comment>Excalidraw drawing</comment>
+    <sub-class-of type="application/json"/>
+    <generic-icon name="x-office-drawing"/>
+    <glob pattern="*.excalidraw"/>
+  </mime-type>
+</mime-info>
