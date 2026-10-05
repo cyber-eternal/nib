@@ -1,0 +1,266 @@
+name: Release
+
+# Builds the universal macOS app and the Linux packages (x86_64 and arm64) for a version tag, attaches
+# them to a GitHub release under versioned and stable names, then publishes it. The stable names let
+# https://github.com/cyber-eternal/nib/releases/latest/download/<name> always point at the newest build.
+# Signing, notarisation and the update feed switch on by themselves once their secrets exist (see
+# apps/desktop/RELEASING.md); without them the release is an ad-hoc signed build that Gatekeeper
+# will ask about.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # One job creates the draft so the parallel builds never race to create it; it is published only after
+  # every build has uploaded, so releases/latest never points at a half-filled release.
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      id: ${{ steps.release.outputs.id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Create the draft release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version=$(jq -r .version apps/desktop/package.json)
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            tag="$GITHUB_REF_NAME"
+            [ "$tag" = "v$version" ] || echo "::warning::Tag $tag does not match apps/desktop/package.json version $version."
+          else
+            tag="v$version"
+          fi
+          if ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
+              --title "Nib $tag" \
+              --notes "Download Nib for macOS (universal: Apple silicon and Intel) and Linux (.AppImage, .deb and .rpm for x86_64 and arm64) from the assets below. The README lists direct links that always point at the latest release."
+          fi
+          id=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq "[.[] | select(.tag_name == \"$tag\")][0].id")
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+  macos:
+    needs: create-release
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.0.1
+
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+        with:
+          toolchain: stable
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run test
+
+      # GitHub passes an unset secret as an empty string, which the Tauri bundler would take as a real
+      # (and broken) identity, so only the secrets that exist reach the build.
+      - name: Collect signing secrets
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          export_env() {
+            for name in "$@"; do
+              delimiter="EOF_$(openssl rand -hex 16)"
+              { echo "$name<<$delimiter"; echo "${!name}"; echo "$delimiter"; } >> "$GITHUB_ENV"
+            done
+          }
+          if [ -n "$APPLE_CERTIFICATE" ] && [ -n "$APPLE_CERTIFICATE_PASSWORD" ] && [ -n "$APPLE_SIGNING_IDENTITY" ]; then
+            export_env APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY
+            # notarising an ad-hoc signed app fails the build, so the Apple ID only goes along with a certificate
+            if [ -n "$APPLE_ID" ] && [ -n "$APPLE_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ]; then
+              export_env APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID
+              echo "Signing with the Developer ID certificate and notarising."
+            else
+              echo "::warning::Signing, but APPLE_ID, APPLE_PASSWORD and APPLE_TEAM_ID are not all set, so the app is not notarised."
+            fi
+          else
+            echo "::warning::No Developer ID certificate, so the app is ad-hoc signed and not notarised."
+          fi
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            export_env TAURI_SIGNING_PRIVATE_KEY
+            if [ -n "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" ]; then export_env TAURI_SIGNING_PRIVATE_KEY_PASSWORD; fi
+          fi
+
+      # The updater only switches on in builds that carry a public key and a feed, and the bundle only
+      # writes update signatures when the private key is there to make them.
+      - name: Configure the update feed
+        id: updater
+        env:
+          UPDATER_PUBKEY: ${{ vars.UPDATER_PUBKEY }}
+          HAS_UPDATER_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+          FEED: https://github.com/${{ github.repository }}/releases/latest/download/latest.json
+        run: |
+          set -euo pipefail
+          if [ -n "$UPDATER_PUBKEY" ] && [ "$HAS_UPDATER_KEY" = "true" ]; then
+            jq -n --arg pubkey "$UPDATER_PUBKEY" --arg feed "$FEED" \
+              '{bundle: {createUpdaterArtifacts: true}, plugins: {updater: {pubkey: $pubkey, endpoints: [$feed]}}}' \
+              > apps/desktop/src-tauri/tauri.release.conf.json
+            echo "args=--config src-tauri/tauri.release.conf.json" >> "$GITHUB_OUTPUT"
+            echo "json=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Set the UPDATER_PUBKEY variable and the TAURI_SIGNING_PRIVATE_KEY secret to ship updates."
+            echo "json=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
+        id: tauri
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          tauriScript: bunx tauri
+          args: --target universal-apple-darwin ${{ steps.updater.outputs.args }}
+          releaseId: ${{ needs.create-release.outputs.id }}
+          includeUpdaterJson: ${{ steps.updater.outputs.json == 'true' }}
+
+      # Versioned assets stay as tauri-action named them (latest.json points at those); these copies
+      # give the README links a name that never changes.
+      - name: Upload stable-named assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.create-release.outputs.tag }}
+          ARTIFACTS: ${{ steps.tauri.outputs.artifactPaths }}
+        run: |
+          set -euo pipefail
+          mkdir -p stable
+          dmg=$(jq -r '.[] | select(endswith(".dmg"))' <<<"$ARTIFACTS" | head -n1)
+          [ -n "$dmg" ] || { echo "::error::No .dmg among $ARTIFACTS"; exit 1; }
+          cp "$dmg" stable/Nib-macOS-universal.dmg
+          gh release upload "$TAG" stable/* --clobber --repo "$GITHUB_REPOSITORY"
+
+  linux:
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        # 22.04 rather than 24.04: an AppImage only runs on systems with at least the glibc it was built with
+        runner: [ubuntu-22.04, ubuntu-22.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Install the WebKitGTK toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev \
+            libayatana-appindicator3-dev libxdo-dev libssl-dev patchelf file xdg-utils libfuse2
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.0.1
+
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: apps/desktop/src-tauri
+          key: ${{ matrix.runner }}
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run test
+
+      # Only the AppImage can update itself; .deb and .rpm installs update through the package manager.
+      - name: Configure the update feed
+        id: updater
+        env:
+          UPDATER_PUBKEY: ${{ vars.UPDATER_PUBKEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          FEED: https://github.com/${{ github.repository }}/releases/latest/download/latest.json
+        run: |
+          set -euo pipefail
+          if [ -n "$UPDATER_PUBKEY" ] && [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            for name in TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD; do
+              [ -n "${!name}" ] || continue
+              delimiter="EOF_$(openssl rand -hex 16)"
+              { echo "$name<<$delimiter"; echo "${!name}"; echo "$delimiter"; } >> "$GITHUB_ENV"
+            done
+            jq -n --arg pubkey "$UPDATER_PUBKEY" --arg feed "$FEED" \
+              '{bundle: {createUpdaterArtifacts: true}, plugins: {updater: {pubkey: $pubkey, endpoints: [$feed]}}}' \
+              > apps/desktop/src-tauri/tauri.release.conf.json
+            echo "args=--config src-tauri/tauri.release.conf.json" >> "$GITHUB_OUTPUT"
+            echo "json=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "json=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
+        id: tauri
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          tauriScript: bunx tauri
+          args: ${{ steps.updater.outputs.args }}
+          releaseId: ${{ needs.create-release.outputs.id }}
+          includeUpdaterJson: ${{ steps.updater.outputs.json == 'true' }}
+
+      - name: Upload stable-named assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.create-release.outputs.tag }}
+          ARTIFACTS: ${{ steps.tauri.outputs.artifactPaths }}
+        run: |
+          set -euo pipefail
+          case "$(uname -m)" in
+            x86_64) appimage=x86_64; deb=amd64; rpm=x86_64 ;;
+            aarch64) appimage=arm64; deb=arm64; rpm=aarch64 ;;
+            *) echo "::error::Unexpected architecture $(uname -m)"; exit 1 ;;
+          esac
+          pick() {
+            local f
+            f=$(jq -r --arg ext "$1" '.[] | select(endswith($ext))' <<<"$ARTIFACTS" | head -n1)
+            [ -n "$f" ] || { echo "::error::No $1 among $ARTIFACTS"; exit 1; }
+            echo "$f"
+          }
+          mkdir -p stable
+          cp "$(pick .AppImage)" "stable/Nib-linux-$appimage.AppImage"
+          cp "$(pick .deb)" "stable/Nib-linux-$deb.deb"
+          cp "$(pick .rpm)" "stable/Nib-linux-$rpm.rpm"
+          gh release upload "$TAG" stable/* --clobber --repo "$GITHUB_REPOSITORY"
+
+  publish-release:
+    needs: [create-release, macos, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.create-release.outputs.tag }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest

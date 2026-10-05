@@ -1,0 +1,62 @@
+name: Bug report
+description: Something in Nib does not work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please search existing issues first.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Select the Arrow tool
+        2. Drag from a rectangle to an ellipse
+        3. Move the ellipse
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Nib version
+      description: Shown in About Nib, or the commit if you built from source.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS app
+        - Linux AppImage
+        - Linux .deb
+        - Linux .rpm
+        - Web build
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS and version
+      placeholder: "macOS 15.4, Ubuntu 24.04 (Wayland), Firefox 130…"
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Screenshots, files or logs
+      description: A screenshot, a small `.nibd` file that shows the problem, or console output. Remove anything private first.
