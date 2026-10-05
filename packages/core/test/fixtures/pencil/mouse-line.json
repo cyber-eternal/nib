@@ -1,0 +1,29 @@
+{
+  "name": "mouse-line",
+  "expected": "line",
+  "zoom": 1,
+  "source": "hand-crafted mouse mimic: minimum-jerk moves sampled at 60 Hz, pixel-rounded, with tremor",
+  "note": "Quick diagonal flick, under 300 ms, with a hook where the pen went down.",
+  "points": [
+    [303, 702],
+    [300, 699],
+    [300, 699],
+    [300, 699],
+    [303, 699],
+    [312, 698],
+    [328, 696],
+    [350, 692],
+    [377, 687],
+    [408, 680],
+    [443, 673],
+    [478, 666],
+    [513, 660],
+    [544, 654],
+    [570, 649],
+    [591, 645],
+    [606, 642],
+    [615, 641],
+    [619, 641],
+    [619, 641]
+  ]
+}
