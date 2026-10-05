@@ -924,8 +924,11 @@ describe("recognizeStroke: real user strokes", () => {
   })
 })
 
+// shared CI runners are several times slower than a laptop; 5ms locally, still well inside a 16ms frame on CI
+const RECOGNIZE_BUDGET_MS = process.env.CI ? 15 : 5
+
 describe("recognizeStroke: performance", () => {
-  test("a 5000-point stroke is recognised in under 5ms", () => {
+  test("a 5000-point stroke is recognised within one frame", () => {
     const strokes: Point[][] = [
       ellipsePts(400, 300, 200, 140, 0.2, 4999, 1.05),
       Array.from(
@@ -952,7 +955,7 @@ describe("recognizeStroke: performance", () => {
         times.push(performance.now() - t0)
       }
       times.sort((a, b) => a - b)
-      expect(times[Math.floor(times.length / 2)]!).toBeLessThan(5)
+      expect(times[Math.floor(times.length / 2)]!).toBeLessThan(RECOGNIZE_BUDGET_MS)
     }
   })
 })

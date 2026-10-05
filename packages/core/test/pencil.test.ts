@@ -45,6 +45,9 @@ const pencil = () => {
 const live = (ed: EditorCore): readonly NibElement[] => ed.scene.getNonDeleted()
 const freedraws = (ed: EditorCore) => live(ed).filter((e): e is FreedrawElement => e.type === "freedraw")
 
+// shared CI runners are several times slower than a laptop; 5ms locally, still well inside a 16ms frame on CI
+const RECOGNIZE_BUDGET_MS = process.env.CI ? 15 : 5
+
 describe("pencil mode", () => {
   test("P arms the pencil and 7 the pen", () => {
     const ed = new EditorCore()
@@ -306,17 +309,18 @@ describe("pencil mode", () => {
     expect(ellipse.frameId).toBe(frame.id)
   })
 
-  test("a 5000-point stroke is recognised in under 5ms", () => {
+  test("a 5000-point stroke is recognised within one frame", () => {
     const pts = circle(400, 400, 300, 4999)
-    recognizeStroke(pts, { zoom: 1 })
-    let best = Number.POSITIVE_INFINITY
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 5; i++) recognizeStroke(pts, { zoom: 1 })
+    const times: number[] = []
+    for (let i = 0; i < 15; i++) {
       const t0 = performance.now()
       const r = recognizeStroke(pts, { zoom: 1 })
-      best = Math.min(best, performance.now() - t0)
+      times.push(performance.now() - t0)
       expect(r?.kind).toBe("ellipse")
     }
-    expect(best).toBeLessThan(5)
+    times.sort((a, b) => a - b)
+    expect(times[Math.floor(times.length / 2)]!).toBeLessThan(RECOGNIZE_BUDGET_MS)
   })
 })
 
